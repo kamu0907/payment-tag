@@ -1,0 +1,768 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>マイクロペイメント HTMLモック</title>
+  <style>
+    :root {
+      --bg: #f6f8fb;
+      --card: #ffffff;
+      --text: #18202a;
+      --muted: #667085;
+      --line: #e5e7eb;
+      --primary: #2563eb;
+      --primary-weak: #eff6ff;
+      --success: #16a34a;
+      --danger: #dc2626;
+      --shadow: 0 12px 30px rgba(15, 23, 42, 0.10);
+      --radius: 18px;
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Hiragino Sans", "Yu Gothic UI", sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.7;
+    }
+
+    .shell {
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 28px 20px 64px;
+    }
+
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 24px;
+      flex-wrap: wrap;
+    }
+
+    .brand {
+      font-weight: 800;
+      font-size: 22px;
+      letter-spacing: .02em;
+    }
+
+    .brand small {
+      display: block;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 600;
+      margin-top: 2px;
+    }
+
+    .statusbar {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .pill {
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      padding: 10px 14px;
+      font-size: 13px;
+      color: var(--muted);
+      box-shadow: 0 4px 14px rgba(15, 23, 42, 0.04);
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 340px;
+      gap: 24px;
+      align-items: start;
+    }
+
+    .card {
+      background: var(--card);
+      border: 1px solid #edf0f4;
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+    }
+
+    .article {
+      padding: 34px;
+    }
+
+    .article .meta {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      color: var(--muted);
+      font-size: 14px;
+      flex-wrap: wrap;
+      margin-bottom: 14px;
+    }
+
+    .kicker {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--primary-weak);
+      color: var(--primary);
+      padding: 8px 12px;
+      border-radius: 999px;
+      font-size: 13px;
+      font-weight: 700;
+      margin-bottom: 18px;
+    }
+
+    h1 {
+      font-size: clamp(28px, 4vw, 42px);
+      line-height: 1.25;
+      margin: 0 0 14px;
+      letter-spacing: -0.02em;
+    }
+
+    .lead {
+      font-size: 18px;
+      color: #425466;
+      margin-bottom: 28px;
+    }
+
+    .article p { margin: 0 0 18px; }
+
+    .embed-box {
+      border: 1px solid #dbe4f0;
+      background: linear-gradient(180deg, #fbfdff 0%, #f8fbff 100%);
+      border-radius: 16px;
+      padding: 18px;
+      margin: 28px 0;
+    }
+
+    .embed-header {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: center;
+      margin-bottom: 14px;
+      flex-wrap: wrap;
+    }
+
+    .embed-title {
+      font-size: 13px;
+      color: var(--muted);
+      font-weight: 700;
+      letter-spacing: .03em;
+      text-transform: uppercase;
+    }
+
+    .support-row {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .tip-button {
+      appearance: none;
+      border: 0;
+      background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+      color: white;
+      padding: 14px 18px;
+      border-radius: 12px;
+      font-weight: 800;
+      font-size: 15px;
+      cursor: pointer;
+      box-shadow: 0 10px 24px rgba(37, 99, 235, 0.25);
+      transition: transform .15s ease, box-shadow .15s ease, opacity .15s ease;
+    }
+    .tip-button:hover { transform: translateY(-1px); }
+    .tip-button:active { transform: translateY(0); }
+    .tip-button[disabled] { opacity: .6; cursor: not-allowed; box-shadow: none; }
+
+    .balance-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 12px 14px;
+      background: white;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      font-weight: 700;
+      font-size: 14px;
+    }
+
+    .helper {
+      font-size: 13px;
+      color: var(--muted);
+      margin-top: 12px;
+    }
+
+    .sidebar {
+      padding: 20px;
+      position: sticky;
+      top: 18px;
+    }
+
+    .sidebar h2 {
+      margin: 0 0 8px;
+      font-size: 18px;
+    }
+
+    .sidebar p {
+      margin: 0 0 12px;
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.6;
+    }
+
+    .panel {
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 14px;
+      background: #fafcff;
+      margin-top: 14px;
+    }
+
+    .kv {
+      display: grid;
+      grid-template-columns: 110px 1fr;
+      gap: 8px 10px;
+      font-size: 13px;
+      align-items: start;
+    }
+
+    .kv div:nth-child(odd) { color: var(--muted); }
+    .kv div:nth-child(even) { font-weight: 700; }
+
+    .actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 16px;
+    }
+
+    .ghost, .subtle {
+      appearance: none;
+      border-radius: 12px;
+      padding: 10px 14px;
+      font-weight: 700;
+      cursor: pointer;
+      font-size: 13px;
+    }
+
+    .ghost {
+      background: #fff;
+      border: 1px solid var(--line);
+    }
+
+    .subtle {
+      background: #eef4ff;
+      border: 1px solid #d8e5ff;
+      color: #1d4ed8;
+    }
+
+    .log {
+      margin-top: 14px;
+      max-height: 260px;
+      overflow: auto;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: white;
+    }
+
+    .log-item {
+      padding: 12px 14px;
+      border-bottom: 1px solid #f0f2f5;
+      font-size: 13px;
+    }
+    .log-item:last-child { border-bottom: 0; }
+    .log-time { color: var(--muted); font-size: 12px; margin-top: 2px; }
+
+    .toast {
+      position: fixed;
+      right: 20px;
+      bottom: 20px;
+      background: #111827;
+      color: white;
+      padding: 14px 16px;
+      border-radius: 14px;
+      box-shadow: 0 16px 40px rgba(0,0,0,.24);
+      max-width: 360px;
+      opacity: 0;
+      transform: translateY(10px);
+      pointer-events: none;
+      transition: all .18s ease;
+      z-index: 30;
+      font-size: 14px;
+    }
+    .toast.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.42);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+      z-index: 40;
+    }
+    .backdrop.open { display: flex; }
+
+    .modal {
+      width: 100%;
+      max-width: 460px;
+      background: white;
+      border-radius: 22px;
+      box-shadow: 0 30px 80px rgba(15, 23, 42, 0.35);
+      overflow: hidden;
+    }
+
+    .modal-head {
+      padding: 22px 24px 10px;
+    }
+
+    .modal-body {
+      padding: 0 24px 24px;
+    }
+
+    .modal-step {
+      display: none;
+    }
+    .modal-step.active { display: block; }
+
+    .modal h3 {
+      margin: 0 0 8px;
+      font-size: 24px;
+      line-height: 1.3;
+    }
+
+    .modal p {
+      margin: 0 0 14px;
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.6;
+    }
+
+    .amount-list {
+      display: grid;
+      gap: 10px;
+      margin: 16px 0;
+    }
+
+    .amount-option {
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 14px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: #fff;
+      cursor: pointer;
+      transition: border-color .15s ease, transform .15s ease, background .15s ease;
+    }
+    .amount-option:hover { transform: translateY(-1px); }
+    .amount-option.active {
+      border-color: #93c5fd;
+      background: #f7fbff;
+    }
+
+    .amount-main { font-size: 18px; font-weight: 800; }
+    .amount-note { color: var(--muted); font-size: 13px; }
+
+    .primary-btn {
+      width: 100%;
+      appearance: none;
+      border: 0;
+      padding: 14px 16px;
+      border-radius: 14px;
+      background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+      color: white;
+      font-weight: 800;
+      font-size: 15px;
+      cursor: pointer;
+      margin-top: 8px;
+    }
+    .primary-btn[disabled] { opacity: .55; cursor: not-allowed; }
+
+    .row-btns {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .secondary-btn {
+      appearance: none;
+      border: 1px solid var(--line);
+      background: white;
+      padding: 13px 14px;
+      border-radius: 14px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .summary {
+      background: #f8fafc;
+      border: 1px solid #e6ebf2;
+      border-radius: 14px;
+      padding: 14px;
+      margin: 16px 0;
+    }
+
+    .spinner {
+      width: 34px;
+      height: 34px;
+      border: 3px solid #dbeafe;
+      border-top-color: #2563eb;
+      border-radius: 50%;
+      margin: 8px auto 18px;
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .success-icon {
+      width: 64px;
+      height: 64px;
+      display: grid;
+      place-items: center;
+      background: #ecfdf3;
+      color: var(--success);
+      border-radius: 999px;
+      font-size: 32px;
+      margin: 4px auto 16px;
+      font-weight: 900;
+    }
+
+    .mini {
+      font-size: 12px;
+      color: var(--muted);
+      margin-top: 10px;
+    }
+
+    @media (max-width: 960px) {
+      .layout { grid-template-columns: 1fr; }
+      .sidebar { position: static; }
+      .article { padding: 24px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <div class="topbar">
+      <div class="brand">MicroPay Mock<small>記事埋め込み型マイクロペイメントの体験モック</small></div>
+      <div class="statusbar">
+        <div class="pill">tenant: media-demo</div>
+        <div class="pill">article: art-20260416-001</div>
+        <div class="pill">author: akira-k</div>
+      </div>
+    </div>
+
+    <div class="layout">
+      <main class="card article">
+        <div class="kicker">埋め込み先イメージ / 記事ページ</div>
+        <div class="meta">
+          <span>2026.04.16</span>
+          <span>•</span>
+          <span>プロダクト</span>
+          <span>•</span>
+          <span>記者：亀山 彰人</span>
+        </div>
+        <h1>なぜメディア課金は「決済」ではなく「気持ちよさ」で設計すべきなのか</h1>
+        <p class="lead">広告のように軽く埋め込めて、サブスクのように継続し、投げ銭のように感情を乗せられる。そんな課金体験のMVPを考える。</p>
+
+        <p>従来の課金導線は、支払いを強く意識させるため離脱の原因になりやすい。一方で、応援やリアクションの延長線に課金を置ければ、ユーザーの心理的ハードルを大きく下げられる可能性がある。</p>
+        <p>今回の検証では、記事ページに小さなボタンを埋め込み、最初だけプリチャージ、以降は残高消費でワンタップ応援する体験をプロトタイプとして再現している。</p>
+
+        <div class="embed-box">
+          <div class="embed-header">
+            <div class="embed-title">Embedded Support Widget</div>
+            <div class="balance-chip" id="balanceChip">残高: -- 円</div>
+          </div>
+          <div class="support-row">
+            <button class="tip-button" id="tipButton">☕ 記者にコーヒーを奢る（10円）</button>
+            <button class="ghost" id="topupShortcut">チャージする</button>
+          </div>
+          <div class="helper">※ 1クリックで10円消費されます。初回はチャージが必要です。チャージ後は同じページでそのまま応援できます。</div>
+        </div>
+
+        <p>実際にこのボタンを押し、初回チャージから2回目以降の連続応援までを体験することで、気持ちよさ・不安感・重さのバランスを具体的に詰められる。</p>
+        <p>プロトタイプ段階では、本物の決済接続や厳密な台帳整合性までは持たず、体験の擦り合わせを最優先にする。どの文言で押したくなるか、残高表示はどこまで見せるか、チャージ後に自動で応援すべきか、といった論点を早く確認するのが目的だ。</p>
+      </main>
+
+      <aside class="card sidebar">
+        <h2>このモックで確認できること</h2>
+        <p>記事ページにタグで埋め込まれた想定のウィジェットが、初回チャージから投げ銭完了までどう振る舞うかを触れます。</p>
+
+        <div class="panel">
+          <div class="kv">
+            <div>導入形態</div><div>JSタグ1本</div>
+            <div>初回UX</div><div>チャージ → 自動投げ銭</div>
+            <div>2回目以降</div><div>完全ワンタップ</div>
+            <div>課金単位</div><div>10円固定</div>
+            <div>状態管理</div><div>ブラウザ内モック</div>
+          </div>
+        </div>
+
+        <div class="actions">
+          <button class="subtle" id="simulateReturning">残高ありユーザーを再現</button>
+          <button class="ghost" id="resetAll">初回状態に戻す</button>
+        </div>
+
+        <div class="panel">
+          <strong style="display:block; margin-bottom:8px;">イベントログ</strong>
+          <div id="eventLog" class="log"></div>
+        </div>
+      </aside>
+    </div>
+  </div>
+
+  <div class="backdrop" id="modalBackdrop" aria-hidden="true">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+      <div class="modal-head">
+        <div style="font-size:12px; color:var(--muted); font-weight:700; text-transform:uppercase; letter-spacing:.06em;">Support Wallet</div>
+      </div>
+      <div class="modal-body">
+        <section class="modal-step active" id="stepTopup">
+          <h3 id="modalTitle">残高がありません</h3>
+          <p>最初に少額だけチャージすると、次からはワンタップで応援できます。今回はプロトタイプなので決済画面は疑似的に再現しています。</p>
+          <div class="amount-list" id="amountList">
+            <div class="amount-option active" data-amount="500">
+              <div>
+                <div class="amount-main">500円チャージ</div>
+                <div class="amount-note">まず試すのにちょうどいい</div>
+              </div>
+              <strong>50回分</strong>
+            </div>
+            <div class="amount-option" data-amount="1000">
+              <div>
+                <div class="amount-main">1000円チャージ</div>
+                <div class="amount-note">継続利用向け</div>
+              </div>
+              <strong>100回分</strong>
+            </div>
+          </div>
+          <button class="primary-btn" id="goCheckout">チャージに進む</button>
+          <div class="mini">※ 実装時は Stripe Checkout / Payment Element などに置き換える想定</div>
+        </section>
+
+        <section class="modal-step" id="stepCheckout">
+          <h3>決済を処理しています</h3>
+          <p>本番では外部決済へ遷移、または埋め込み決済フォームを表示します。ここでは完了後に元の記事へ戻り、自動で10円応援する動きを再現します。</p>
+          <div class="spinner"></div>
+          <div class="summary" id="checkoutSummary"></div>
+          <div class="row-btns">
+            <button class="secondary-btn" id="cancelCheckout">戻る</button>
+            <button class="primary-btn" id="completeCheckout" style="margin-top:0;">決済成功を再現</button>
+          </div>
+        </section>
+
+        <section class="modal-step" id="stepSuccess">
+          <div class="success-icon">✓</div>
+          <h3>応援ありがとうございました</h3>
+          <p id="successText">500円をチャージし、そのまま10円を投げ銭しました。</p>
+          <div class="summary" id="successSummary"></div>
+          <div class="row-btns">
+            <button class="secondary-btn" id="closeSuccess">記事に戻る</button>
+            <button class="primary-btn" id="supportAgain" style="margin-top:0;">もう一度10円応援する</button>
+          </div>
+        </section>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script>
+    const state = {
+      walletId: 'wlt_demo_browser_001',
+      balance: 0,
+      selectedTopupAmount: 500,
+      tipAmount: 10,
+      topupCount: 0,
+      tipCount: 0,
+      lastAction: null
+    };
+
+    const balanceChip = document.getElementById('balanceChip');
+    const eventLog = document.getElementById('eventLog');
+    const tipButton = document.getElementById('tipButton');
+    const topupShortcut = document.getElementById('topupShortcut');
+    const modalBackdrop = document.getElementById('modalBackdrop');
+    const toast = document.getElementById('toast');
+    const amountOptions = [...document.querySelectorAll('.amount-option')];
+    const checkoutSummary = document.getElementById('checkoutSummary');
+    const successSummary = document.getElementById('successSummary');
+    const successText = document.getElementById('successText');
+
+    const steps = {
+      topup: document.getElementById('stepTopup'),
+      checkout: document.getElementById('stepCheckout'),
+      success: document.getElementById('stepSuccess')
+    };
+
+    function formatYen(value) {
+      return `${value.toLocaleString('ja-JP')}円`;
+    }
+
+    function render() {
+      balanceChip.textContent = `残高: ${formatYen(state.balance)}`;
+      tipButton.textContent = state.balance >= state.tipAmount
+        ? `☕ 記者にコーヒーを奢る（${state.tipAmount}円）`
+        : `☕ 記者にコーヒーを奢る（${state.tipAmount}円）`;
+    }
+
+    function addLog(title, detail) {
+      const item = document.createElement('div');
+      item.className = 'log-item';
+      const now = new Date();
+      item.innerHTML = `<strong>${title}</strong><div>${detail}</div><div class="log-time">${now.toLocaleTimeString('ja-JP')}</div>`;
+      eventLog.prepend(item);
+    }
+
+    function showToast(message) {
+      toast.textContent = message;
+      toast.classList.add('show');
+      clearTimeout(showToast._timer);
+      showToast._timer = setTimeout(() => toast.classList.remove('show'), 2200);
+    }
+
+    function openModal(stepName) {
+      Object.values(steps).forEach(step => step.classList.remove('active'));
+      steps[stepName].classList.add('active');
+      modalBackdrop.classList.add('open');
+      modalBackdrop.setAttribute('aria-hidden', 'false');
+    }
+
+    function closeModal() {
+      modalBackdrop.classList.remove('open');
+      modalBackdrop.setAttribute('aria-hidden', 'true');
+    }
+
+    function refreshCheckoutSummary() {
+      checkoutSummary.innerHTML = `
+        <div style="display:grid; gap:8px; font-size:14px;">
+          <div>チャージ額: <strong>${formatYen(state.selectedTopupAmount)}</strong></div>
+          <div>チャージ後に自動応援: <strong>${formatYen(state.tipAmount)}</strong></div>
+          <div>反映後の想定残高: <strong>${formatYen(state.selectedTopupAmount - state.tipAmount)}</strong></div>
+        </div>`;
+    }
+
+    function refreshSuccessSummary() {
+      successText.textContent = `${formatYen(state.selectedTopupAmount)}をチャージし、そのまま${formatYen(state.tipAmount)}を投げ銭しました。`;
+      successSummary.innerHTML = `
+        <div style="display:grid; gap:8px; font-size:14px;">
+          <div>現在残高: <strong>${formatYen(state.balance)}</strong></div>
+          <div>累計チャージ回数: <strong>${state.topupCount}回</strong></div>
+          <div>累計応援回数: <strong>${state.tipCount}回</strong></div>
+        </div>`;
+    }
+
+    function performTip(source = 'widget') {
+      if (state.balance < state.tipAmount) {
+        addLog('残高不足', `wallet ${state.walletId} の残高が不足していたためチャージ導線を表示`);
+        refreshCheckoutSummary();
+        openModal('topup');
+        return;
+      }
+      state.balance -= state.tipAmount;
+      state.tipCount += 1;
+      state.lastAction = 'tip';
+      render();
+      addLog('投げ銭完了', `${formatYen(state.tipAmount)} を article=art-20260416-001 / author=akira-k に付与。残高 ${formatYen(state.balance)}`);
+      showToast(`応援しました。残高 ${formatYen(state.balance)}`);
+    }
+
+    function simulateCheckoutSuccess() {
+      state.balance += state.selectedTopupAmount;
+      state.topupCount += 1;
+      addLog('チャージ完了', `${formatYen(state.selectedTopupAmount)} をチャージ。残高 ${formatYen(state.balance)}`);
+
+      state.balance -= state.tipAmount;
+      state.tipCount += 1;
+      addLog('自動投げ銭', `チャージ完了後に ${formatYen(state.tipAmount)} を自動で応援。残高 ${formatYen(state.balance)}`);
+
+      render();
+      refreshSuccessSummary();
+      openModal('success');
+    }
+
+    document.getElementById('tipButton').addEventListener('click', () => performTip('widget'));
+    document.getElementById('topupShortcut').addEventListener('click', () => {
+      addLog('チャージ導線表示', 'ユーザーが明示的にチャージ導線を開いた');
+      refreshCheckoutSummary();
+      openModal('topup');
+    });
+
+    amountOptions.forEach(option => {
+      option.addEventListener('click', () => {
+        amountOptions.forEach(o => o.classList.remove('active'));
+        option.classList.add('active');
+        state.selectedTopupAmount = Number(option.dataset.amount);
+        refreshCheckoutSummary();
+      });
+    });
+
+    document.getElementById('goCheckout').addEventListener('click', () => {
+      addLog('決済フロー開始', `${formatYen(state.selectedTopupAmount)} のチャージ手続きを開始`);
+      refreshCheckoutSummary();
+      openModal('checkout');
+    });
+
+    document.getElementById('cancelCheckout').addEventListener('click', () => {
+      addLog('決済キャンセル', '疑似決済画面からチャージ選択へ戻った');
+      openModal('topup');
+    });
+
+    document.getElementById('completeCheckout').addEventListener('click', () => {
+      simulateCheckoutSuccess();
+    });
+
+    document.getElementById('closeSuccess').addEventListener('click', () => {
+      closeModal();
+      showToast(`チャージ完了。残高 ${formatYen(state.balance)}`);
+    });
+
+    document.getElementById('supportAgain').addEventListener('click', () => {
+      closeModal();
+      performTip('modal');
+    });
+
+    document.getElementById('simulateReturning').addEventListener('click', () => {
+      state.balance = 490;
+      state.topupCount = 1;
+      state.tipCount = 1;
+      render();
+      addLog('状態切り替え', '残高ありの再訪ユーザー状態を再現（490円）');
+      showToast('残高ありユーザーに切り替えました');
+    });
+
+    document.getElementById('resetAll').addEventListener('click', () => {
+      state.balance = 0;
+      state.selectedTopupAmount = 500;
+      state.topupCount = 0;
+      state.tipCount = 0;
+      amountOptions.forEach((o, i) => o.classList.toggle('active', i === 0));
+      render();
+      eventLog.innerHTML = '';
+      addLog('リセット', '初回訪問ユーザー状態に戻した');
+      showToast('初回状態に戻しました');
+    });
+
+    modalBackdrop.addEventListener('click', (e) => {
+      if (e.target === modalBackdrop) closeModal();
+    });
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') closeModal();
+    });
+
+    render();
+    refreshCheckoutSummary();
+    addLog('初期表示', '記事ページにマイクロペイメントウィジェットを表示');
+  </script>
+</body>
+</html>
