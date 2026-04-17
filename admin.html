@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>管理画面 | Payment Tag</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      background: #f5f6f8;
+    }
+    header {
+      background: #111;
+      color: #fff;
+      padding: 16px;
+      font-size: 18px;
+    }
+    .container {
+      padding: 20px;
+    }
+    .card {
+      background: #fff;
+      border-radius: 8px;
+      padding: 16px;
+      margin-bottom: 16px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+    }
+    .grid {
+      display: flex;
+      gap: 16px;
+    }
+    .metric {
+      flex: 1;
+      text-align: center;
+    }
+    .metric h2 {
+      margin: 0;
+      font-size: 24px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    th, td {
+      padding: 8px;
+      border-bottom: 1px solid #eee;
+      text-align: left;
+      font-size: 14px;
+    }
+    .topbar {
+      position: fixed;
+      top: 16px;
+      right: 16px;
+    }
+    .btn {
+      background: #111;
+      color: #fff;
+      padding: 6px 10px;
+      border-radius: 6px;
+      text-decoration: none;
+      font-size: 12px;
+      margin-left: 8px;
+    }
+  </style>
+</head>
+<body>
+
+<header>管理画面</header>
+
+<div class="topbar">
+  <a href="./index.html" class="btn">ユーザー画面</a>
+  <a href="#" onclick="resetData()" class="btn">リセット</a>
+</div>
+
+<div class="container">
+
+  <!-- 概要 -->
+  <div class="card">
+    <h3>概要</h3>
+    <div class="grid">
+      <div class="metric">
+        <h2 id="totalCharge">0</h2>
+        <div>総チャージ</div>
+      </div>
+      <div class="metric">
+        <h2 id="totalTip">0</h2>
+        <div>総投げ銭</div>
+      </div>
+      <div class="metric">
+        <h2 id="balance">0</h2>
+        <div>残高</div>
+      </div>
+      <div class="metric">
+        <h2 id="eventCount">0</h2>
+        <div>イベント数</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 記事別ランキング -->
+  <div class="card">
+    <h3>記事別ランキング</h3>
+    <table>
+      <thead>
+        <tr>
+          <th>記事</th>
+          <th>投げ銭合計</th>
+        </tr>
+      </thead>
+      <tbody id="ranking"></tbody>
+    </table>
+  </div>
+
+  <!-- イベントログ -->
+  <div class="card">
+    <h3>イベントログ</h3>
+    <table>
+      <thead>
+        <tr>
+          <th>種別</th>
+          <th>金額</th>
+          <th>記事</th>
+          <th>日時</th>
+        </tr>
+      </thead>
+      <tbody id="events"></tbody>
+    </table>
+  </div>
+
+  <!-- 埋め込みタグ -->
+  <div class="card">
+    <h3>埋め込みタグ</h3>
+    <pre>
+&lt;script src="https://example.com/embed.js"
+  data-tenant="demo"
+  data-article-id="article-1"&gt;&lt;/script&gt;
+    </pre>
+  </div>
+
+</div>
+
+<script>
+function loadData() {
+  const events = JSON.parse(localStorage.getItem("events") || "[]");
+
+  let totalCharge = 0;
+  let totalTip = 0;
+
+  const articleMap = {};
+
+  events.forEach(e => {
+    if (e.type === "charge") totalCharge += e.amount;
+    if (e.type === "tip") {
+      totalTip += e.amount;
+      articleMap[e.article] = (articleMap[e.article] || 0) + e.amount;
+    }
+  });
+
+  document.getElementById("totalCharge").innerText = totalCharge + "円";
+  document.getElementById("totalTip").innerText = totalTip + "円";
+  document.getElementById("balance").innerText = (totalCharge - totalTip) + "円";
+  document.getElementById("eventCount").innerText = events.length;
+
+  // ランキング
+  const rankingEl = document.getElementById("ranking");
+  rankingEl.innerHTML = "";
+  Object.entries(articleMap)
+    .sort((a,b) => b[1] - a[1])
+    .forEach(([article, amount]) => {
+      rankingEl.innerHTML += `
+        <tr>
+          <td>${article}</td>
+          <td>${amount}円</td>
+        </tr>
+      `;
+    });
+
+  // イベントログ
+  const eventsEl = document.getElementById("events");
+  eventsEl.innerHTML = "";
+  events.forEach(e => {
+    eventsEl.innerHTML += `
+      <tr>
+        <td>${e.type}</td>
+        <td>${e.amount}円</td>
+        <td>${e.article || "-"}</td>
+        <td>${new Date(e.time).toLocaleString()}</td>
+      </tr>
+    `;
+  });
+}
+
+function resetData() {
+  localStorage.removeItem("events");
+  alert("リセットしました");
+  loadData();
+}
+
+loadData();
+</script>
+
+</body>
+</html>
